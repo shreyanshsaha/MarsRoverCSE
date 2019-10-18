@@ -36,7 +36,3 @@ class Compass(Serial):
 # ! ======================
 # ! DO NOT CHANGE THE FILE
 # ! ======================
-
-com = Compass("/dev/ttyACM0")
-while True:
-		print(com.getCompassAngle())
