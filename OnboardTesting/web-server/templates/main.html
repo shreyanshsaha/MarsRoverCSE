@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Mars Rovers</title>
+  </div>
+  </div>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="/static/css/bootstrap.min.css" />
+  <script src="/static/lib/jQuery.min.js"></script>
+  <script src="/static/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <!-- TODO: Add div to flash messages by using bootstrap -->
+  <!-- TODO: Make it so that in autonomous mode, no data is sent -->
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">Mars Rover</a>
+      <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button> -->
+      <!-- <div class="collapse navbar-collapse" id="navbarNavAltMarkup"> -->
+      <div class="navbar-nav mr-auto">
+        <a class="nav-item nav-link" href="#">Technocrats</a>
+      </div>
+      <!-- </div> -->
+    </div>
+  </nav>
+
+  <!-- Error Table -->
+  <div class="container mt-4">
+    <table class="table table-hover table-bordered table-sm btn-group-sm">
+      <thead class="table-dark">
+        <tr>
+          <td colspan="2">Errors</td>
+        </tr>
+      </thead>
+      <tr>
+        <td>Serial Error:</td>
+        <td id='serialError' class="text-danger">None</td>
+      </tr>
+    </table>
+  </div>
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-4">
+        <table class="table table-hover table-striped">
+          <thead>
+            <tr>
+              <td colspan="2" class="bg-dark text-white">
+                Onboard Testing Controls
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pump 1</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>Pump 2</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td>Zoom In</td>
+              <td>UP</td>
+            </tr>
+            <tr>
+              <td>Zoom Out</td>
+              <td>Down</td>
+            </tr>
+            <tr>
+              <td>Turn Anti Clock</td>
+              <td>Left</td>
+            </tr>
+            <tr>
+              <td>Turn Clockwise</td>
+              <td>Right</td>
+            </tr>
+            <tr>
+              <td>Reset</td>
+              <td>`</td>
+            </tr>
+            <tr>
+              <td>Escape</td>
+              <td>Clear</td>
+            </tr>
+            <tr>
+              <td>Stop</td>
+              <td>s</td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+      <div class="col-8">
+        <!-- <h1>Onboard Feed</h1> -->
+        <!-- <div class="col-6"> -->
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr class="bg-dark text-white">
+              <td colspan="2">Sensor Value</td>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>PH: </td>
+              <td id="sensorDataPH">None </td>
+            </tr>
+            <tr>
+              <td>Temperature: </td>
+              <td id="sensorDataTemp">None </td>
+            </tr>
+            <tr>
+              <td>Moisture: </td>
+              <td id="sensorDataMoisture">None </td>
+            </tr>
+            <tr>
+              <td>Pressure: </td>
+              <td id="sensorDataPressure">None </td>
+            </tr>
+            <tr>
+              <td>Altitude: </td>
+              <td id="sensorDataAltitude">None </td>
+            </tr>
+            <tr>
+              <td>UV: </td>
+              <td id="sensorDataUV">None </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- </div> -->
+      </div>
+    </div>
+
+    <div class="row">
+      <div id="responseDiv" class="col-12"></div>
+    </div>
+  </div>
+
+
+
+  <!--AJAX SCRIPTS-->
+
+  <!-- Motor Keys Script -->
+  <script>
+    document.onkeydown = checkKey
+
+    function checkKey(e) {
+      e = e || window.event;
+      console.log("Key pressed: ", e.keyCode);
+      var parameter = '?';
+      if (e.keyCode == 37) {
+        parameter += 'turnLeft=TRUE&'
+      } else {
+        parameter += "turnLeft=FALSE&"
+      }
+
+      if (e.keyCode == 38) {
+        parameter += 'zoomIn=TRUE&'
+      } else {
+        parameter += "zoomIn=FALSE&"
+      }
+
+      if (e.keyCode == 40) {
+        parameter += 'zoomOut=TRUE&'
+      } else {
+        parameter += "zoomOut=FALSE&"
+      }
+
+      if (e.keyCode == 39) {
+        parameter += 'turnRight=TRUE&'
+      } else {
+        parameter += "turnRight=FASLE&"
+      }
+
+      if (e.keyCode == 49) {
+        parameter += 'Pump1=TRUE&'
+      } else {
+        parameter += "Pump1=FALSE&"
+      }
+
+      if (e.keyCode == 50) {
+        parameter += 'Pump2=TRUE&'
+      } else {
+        parameter += "Pump2=FASLE&"
+      }
+
+      if (e.keyCode == 83) {
+        parameter += "stop=TRUE&"
+      } else {
+        parameter += "stop=FASLE&"
+      }
+
+      if (e.keyCode == '192')
+        parameter += 'reset=TRUE&';
+
+      if (e.keyCode == '27') {
+        document.getElementById('responseDiv').innerHTML = '';
+        return;
+      }
+
+      console.log(parameter);
+      $.ajax({
+        type: "GET",
+        url: "/setMotors" + parameter,
+        success: (response) => {
+          console.log(response);
+          document.getElementById('responseDiv').innerHTML = '<div class="alert alert-primary"><b>Current Command: </b>' + response + '</div>'
+        },
+        fail: () => {
+          console.log("Motor failed!");
+        }
+      })
+    }
+
+    function updateValues(response) {
+      console.log(response);
+      Object.keys(response).forEach(function (key) {
+        var temp = document.getElementById(key);
+        if (temp === null) {
+          console.log(key + " Doesnt exist!")
+          // temp.innerHTML = html;
+        }
+        else
+          temp.innerText = response[key];
+      });
+    }
+    setInterval(() => {
+      $.ajax({
+        type: "GET",
+        url: '/getSensor',
+        success: updateValues,
+        fail: function () {
+          console.log("Failed!")
+        }
+      });
+    }, 1000);
+
+
+  </script>
+</body>
+
+</html>

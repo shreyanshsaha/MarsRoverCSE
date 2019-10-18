@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Mars Rovers</title>
+  </div>
+  </div>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="/static/css/bootstrap.min.css" />
+  <script src="/static/lib/jQuery.min.js"></script>
+  <script src="/static/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <!-- TODO: Add div to flash messages by using bootstrap -->
+  <!-- TODO: Make it so that in autonomous mode, no data is sent -->
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">Mars Rover</a>
+      <!-- <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button> -->
+      <!-- <div class="collapse navbar-collapse" id="navbarNavAltMarkup"> -->
+      <div class="navbar-nav mr-auto">
+        <a class="nav-item nav-link" href="#">Technocrats</a>
+      </div>
+      <!-- </div> -->
+    </div>
+  </nav>
+
+
+  <!-- Form -->
+  <div class="container mt-4">
+    <!-- Command Execution Input -->
+    <div class="row">
+      <div class="col-2">
+        <select class="form-control">
+          <option>GPS</option>
+          <!-- <option>Sensor</option> -->
+        </select>
+      </div>
+
+      <div class="col-6">
+        <input class="form-control" placeholder="Command" type="text" id='command'>
+      </div>
+
+      <div class="col-2">
+        <div class="text-center">
+          <button class="btn btn-info btn-block" onclick="sendCommand()">Execute</button>
+        </div>
+      </div>
+      <div class="col-2">
+        <div class="text-right">
+          <button class="btn btn-danger" id="autoBtn" onclick="toggleAuto()">Auto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Table -->
+  <div class="container mt-4">
+    <table class="table table-hover table-dark table-bordered table-sm btn-group-sm">
+      <thead>
+        <tr>
+          <td colspan="3">Errors</td>
+        </tr>
+      </thead>
+      <tr>
+        <td>GPS Error:</td>
+        <td id='gpsError'>None</td>
+        <td class="text-center"><button class='btn btn-danger btn-sm' onclick="reset('gps')">RESET</button></td>
+      </tr>
+      <tr>
+        <td>Serial Error:</td>
+        <td id='serialError'>None</td>
+        <td class="text-center"><button class='btn btn-danger btn-sm' onclick="reset('sensor')">RESET</button></td>
+      </tr>
+      <tr>
+        <td>Command Error:</td>
+        <td id='commandError'>None</td>
+        <td class="text-center"><button class='btn btn-danger btn-sm' onclick="reset('command')">RESET</button></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Tables of data and location-->
+  <div class="container mt-2">
+    <div class="row">
+
+      <!-- GPS Data -->
+      <div class="col-6">
+        <table class="table table-bordered gpsTable table-striped table-hover table-sm">
+          <thead class="thead-dark">
+            <tr class="bg-dark text-light">
+              <td colspan="2">GPS Data</td>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td class='gpsDataHeading' rowspan="2">Current: </td>
+              <td class="gpsText" id='currentLocationLat'>None</td>
+            </tr>
+            <tr>
+              <td id="currentLocationLon">None</td>
+            </tr>
+            <tr>
+              <td class='gpsDataHeading' rowspan="2">Next: </td>
+              <td class='gpsText'>None</td>
+            </tr>
+            <tr>
+              <td>None</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Location List -->
+      <div class="col-6">
+        <table class="table table-borderless table-hover table-sm table-striped">
+          <thead class="bg-dark text-white">
+            <tr>
+              <td colspan="2">Locations</td>
+              <td class="text-center"><button class="btn btn-danger btn-sm" onclick="clearLocations()">Clear</button></td>
+            </tr>
+          </thead>
+          <tbody id="locationListBody">
+
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="row">
+
+      <!-- Sensor Value -->
+      <div class="col-6">
+        <table class="table table-bordered table-striped table-sm">
+          <thead>
+            <tr class="bg-dark text-white">
+              <td colspan="2">Sensor Value</td>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>PH: </td>
+              <td id="sensorDataPH">None </td>
+            </tr>
+            <tr>
+              <td>Temperature: </td>
+              <td id="sensorDataTemp">None </td>
+            </tr>
+            <tr>
+              <td>Moisture: </td>
+              <td id="sensorDataMoisture">None </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // AJAX Scripts
+    function updateValues(response) {
+      Object.keys(response).forEach(function (key) {
+        var temp = document.getElementById(key);
+        if (temp === null)
+          console.log(key + " Doesnt exist!")
+        else if (key == "locationListBody") {
+          var html = '';
+          let i = 0;
+          response[key].forEach(function (location) {
+            location = String(location).replace(',', '</td><td>');
+            html += '<tr class="text-center"><td>' + location + '</td><td><button type="button" class="close btn btn-block" value="' + i + '" onclick="delLocation(this.value)">&times;</button></td></tr>';
+            i++;
+          });
+
+          temp.innerHTML = html;
+        }
+        else
+          temp.innerText = response[key];
+      });
+    }
+    // INterval for GPS Data
+    setInterval(() => {
+      $.ajax({
+        type: "GET",
+        url: '/getGps',
+        success: updateValues,
+        fail: function () {
+          console.log("FAiled!")
+        }
+      });
+    }, 1000);
+    // Interval for sensor Data
+    setInterval(() => {
+      $.ajax({
+        type: "GET",
+        url: '/getSensor',
+        success: updateValues,
+        fail: function () {
+          console.log("Failed!")
+        }
+      });
+    }, 1000);
+  </script>
+
+  <script>
+    var isAuto = false;
+    function reset(service) {
+      // alert("Resetting: "+service);
+      if (service == 'gps')
+        document.getElementById('gpsError').innerText = 'Resetting!';
+      else if (service == 'sensor')
+        document.getElementById('serialError').innerText = 'Resetting!';
+      else if (service == 'command')
+        document.getElementById('commandError').innerText = 'Resetting!';
+      $.ajax({
+        type: "GET",
+        url: '/reset/' + service,
+        success: updateValues
+      });
+    }
+
+    function sendCommand() {
+      var command = document.getElementById('command').value;
+      console.log(command);
+      $.ajax({
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ "command": command }),
+        dataType: 'json',
+        url: '/executeCommand',
+        success: updateValues
+      });
+    }
+
+    function toggleAuto() {
+      isAuto = !isAuto;
+      if (isAuto) {
+        document.getElementById('command').setAttribute('disabled', 'true');
+        document.getElementById('autoBtn').classList.remove('btn-danger');
+        document.getElementById('autoBtn').classList.add('btn-success');
+      }
+      else {
+        document.getElementById('command').removeAttribute('disabled');
+        document.getElementById('autoBtn').classList.remove('btn-success');
+        document.getElementById('autoBtn').classList.add('btn-danger');
+      }
+    }
+
+    function delLocation(index) {
+      console.log(index);
+      $.ajax({
+        type: "GET",
+        url: "/delLocation/" + index,
+        success: updateValues,
+        fail: () => { console.log("Ajax failed!"); }
+      });
+    }
+
+    function clearLocations() {
+      var retVal = confirm("Confirm clear action!");
+      if (retVal)
+        $.ajax({
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ "command": "CLEAR" }),
+          dataType: 'json',
+          url: '/executeCommand',
+          success: updateValues
+        });
+    }
+  </script>
+
+  <!-- Motor Keys Script -->
+  <script>
+    document.onkeydown = checkKey
+    function checkKey(e) {
+      e = e || window.event;
+      console.log("Key pressed: ", e.keyCode);
+      var parameter = '?';
+      if (e.keyCode == 37) {
+        parameter += 'left=true&'
+      }
+      else {
+        parameter += "left=false&"
+      }
+
+      if (e.keyCode == 38) {
+        parameter += 'front=true&'
+      }
+      else {
+        parameter += "front=false&"
+      }
+
+      if (e.keyCode == 39) {
+        parameter += 'right=true&'
+      }
+      else {
+        parameter += "right=false&"
+      }
+
+
+      if (e.keyCode == 40) {
+        parameter += 'back=true&'
+      }
+      else {
+        parameter += "back=false&"
+      }
+
+      if (e.keyCode == '192')
+        parameter += 'reset=true&';
+
+      console.log(parameter);
+      $.ajax({
+        type: "GET",
+        url: "/setMotors" + parameter,
+        success: (response) => {
+          console.log(response)
+        },
+        fail: () => {
+          console.log("Motor failed!");
+        }
+      })
+    }
+  </script>
+</body>
+
+</html>

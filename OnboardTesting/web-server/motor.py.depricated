@@ -1,0 +1,132 @@
+# from compass import Compass
+from nanpy import ArduinoApi, SerialManager, Stepper
+import time
+class Motor():
+  def __init__(self, device):
+    
+    # self.compass = compassObject
+    self.devicePath=device
+    self.RPM=100
+    self.rotateRPM=160
+    self.currentFunction=None
+    #stepsPerRevolution = 200
+    #self.labBase = Stepper(100,9,10,1000)
+    
+    # microscope = 9 and 10
+
+   # zoom pins
+    self.in1 = 9
+    self.in2 = 10
+
+   #pump pins
+    self.p1 = 7
+    self.p2 = 8
+    
+    self.connectMotor()
+  
+  def connectMotor(self):
+    try:
+      connection = SerialManager(self.devicePath) #CHANGE THIS
+      self.motorSerial = ArduinoApi(connection=connection)
+    except Exception as e:
+      raise e
+  
+  #* Motor Movements
+
+  def moveMotor(self, function):
+    if function == self.currentFunction:
+      print("Ignoring, same function")
+    else:
+      self.currentFunction=function
+      if self.currentFunction=='forward':
+        self.ZoomIn()
+      elif self.currentFunction=='backward':
+        self.ZoomOut()
+      elif self.currentFunction=='left':
+        self.RotateLeft()
+      elif self.currentFunction=='right':
+        self.RotateRight()
+      elif self.currentFunction=='pump1':
+        self.pump1()
+      elif self.currentFunction=='pump2':
+        self.pump2()
+      elif self.currentFunction=='stop':
+        self.stopPumps()
+      elif self.currentFunction=='reset':
+        self.resetAllMotors()
+
+  def ZoomIn(self):
+    print("Zooming In")
+    #self.motorSerial.analogWrite(self.s11,self.RPM)
+    #self.motorSerial.analogWrite(self.s12,self.RPM)
+    #self.motorSerial.analogWrite(self.s21,self.RPM)
+    #self.motorSerial.analogWrite(self.s22,self.RPM)
+    #self.motorSerial.digitalWrite(self.m11, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m12, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m21, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m22, self.motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.in1,motorSerial.HIGH)
+    self.motorSerial.digitalWrite(self.in2,motorSerial.LOW)
+    delay(350)
+    self.motorSerial.digitalWrite(self.in1,motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.in2,motorSerial.LOW)    
+
+  def ZoomOut(self):
+    print("Zooming Out")
+    #self.motorSerial.analogWrite(self.s11,self.RPM)
+    #self.motorSerial.analogWrite(self.s12,self.RPM)
+    #self.motorSerial.analogWrite(self.s21,self.RPM)
+    #self.motorSerial.analogWrite(self.s22,self.RPM)
+    #self.motorSerial.digitalWrite(self.m11, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m12, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m21, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m22, self.motorSerial.HIGH)
+    self.motorSerial.digitalWrite(self.in1,motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.in2,motorSerial.HIGH)
+    delay(350)
+    self.motorSerial.digitalWrite(self.in1,motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.in2,motorSerial.LOW)   
+  
+  ##def RotateLeft(self):
+    #print("RotateLeft")
+    #self.motorSerial.analogWrite(self.s11,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s12,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s21,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s22,self.rotateRPM)
+    #self.motorSerial.digitalWrite(self.m11, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m12, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m21, self.motorSerial.HIGH)
+    #self.motorSerial.digitalWrite(self.m22, self.motorSerial.HIGH)
+    #labBase.step(-700/6)
+
+  #def RotateRight(self):
+   # print("RotateRight")
+    #self.motorSerial.analogWrite(self.s11,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s12,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s21,self.rotateRPM)
+    #self.motorSerial.analogWrite(self.s22,self.rotateRPM)
+    #self.motorSerial.digitalWrite(self.m11, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m12, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m21, self.motorSerial.LOW)
+    #self.motorSerial.digitalWrite(self.m22, self.motorSerial.LOW)
+    #labBase.step(700/6)
+
+  def pump1(self):
+    print("pump1 on")
+    self.motorSerial.digitalWrite(self.p1,self.motorSerial.HIGH)
+    self.motorSerial.digitalWrite(self.p2,self.motorSerial.LOW)    
+
+  def pump2(self):
+    print("pump2 on")
+    self.motorSerial.digitalWrite(self.p1,self.motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.p2,self.motorSerial.HIGH)    
+
+  def stopPumps(self):
+    self.motorSerial.digitalWrite(self.p1,self.motorSerial.LOW)
+    self.motorSerial.digitalWrite(self.p2,self.motorSerial.LOW)          
+  
+  def resetAllMotors(self):
+    self.motorSerial.digitalWrite(self.in1,0)
+    self.motorSerial.digitalWrite(self.in2,0)
+    self.motorSerial.digitalWrite(self.p1,0)
+    self.motorSerial.digitalWrite(self.p2,0)  

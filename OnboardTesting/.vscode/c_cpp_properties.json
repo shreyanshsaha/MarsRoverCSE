@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/shrey/Downloads/arduino-1.8.7/tools/**",
+                "/home/shrey/Downloads/arduino-1.8.7/hardware/arduino/avr/**"
+            ],
+            "forcedInclude": [
+                "/home/shrey/Downloads/arduino-1.8.7/hardware/arduino/avr/cores/arduino/Arduino.h"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang++-3.8",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
